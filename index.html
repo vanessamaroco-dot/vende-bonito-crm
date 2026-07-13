@@ -776,6 +776,7 @@ function analizarVoz(nid,btn){
   var prompt='Eres la asistente de Vanesa Maroco, mentora del programa Vende Bonito.\nAlumna: '+a.nombre+'.\nEsta es una nota de voz sobre esta alumna grabada el '+n.fecha+'. Extrae las tareas o pendientes que se mencionan y la conclusion principal.\nResponde SOLO en JSON valido: {"tareas":["..."],"conclusiones":"..."}';
   fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:prompt}]})
   }).then(function(r){return r.json();}).then(function(data){
+    if(!data||!data.content||!data.content[0]){throw new Error('API error: '+(data&&data.error?data.error.message:JSON.stringify(data)));}
     var raw=data.content[0].text.trim();var cleanRaw=raw.replace(/[\u0000-\u001F\u007F]/g," ");var m=cleanRaw.match(/\{[\s\S]*\}/);if(!m)throw new Error('no');
     var p=JSON.parse(m[0]);
     n.analisis={tareas:p.tareas||[],conclusiones:p.conclusiones||'',ok:false};
@@ -855,6 +856,7 @@ function analizarIA() {
   txt=txt.slice(0,6000).replace(/["\\]/g,function(c){return c==='"'?'\\"':'\\\\';});var prompt='Eres la asistente de Vanesa Maroco, mentora del programa Vende Bonito.\nAnaliza estas notas de sesion (tipo: '+tipo+', fecha: '+(fecha||'no especificada')+') y extrae info POR ALUMNA.\n'+(nombres?'Alumnas: '+nombres+'.\n':'')+'NOTAS:\n'+txt.slice(0,10000)+'\nResponde SOLO en JSON valido: {"alumnas":[{"nombre":"...","objetivos":["..."],"tareas":["..."],"conclusiones":"...","estado":"bien|regular|bloqueada"}],"resumen":"...","temas":["..."]}';
   fetch('/.netlify/functions/claude',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})
   }).then(function(r){return r.json();}).then(function(data){
+    if(!data||!data.content||!data.content[0]){throw new Error('API error: '+(data&&data.error?data.error.message:JSON.stringify(data)));}
     var raw=data.content[0].text.trim();var cleanRaw=raw.replace(/[\u0000-\u001F\u007F]/g," ");var m=cleanRaw.match(/\{[\s\S]*\}/);if(!m)throw new Error('no JSON');
     var p=JSON.parse(m[0]);iaR={p:p,tipo:tipo,fecha:fecha};
     var h='';if(p.resumen)h+='<h4>Resumen</h4><p>'+p.resumen+'</p>';
